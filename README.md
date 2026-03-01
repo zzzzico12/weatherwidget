@@ -24,7 +24,7 @@
 
 ## プライバシーポリシー
 このアプリは天気を取得するために位置情報を使用しますが、サーバーに保存することはありません。詳細は以下のページをご確認ください。
-[プライバシーポリシーはこちら](https://zzzzico12.github.io/weatherwidget/PRIVACY_POLICY)
+[プライバシーポリシーはこちら](https://zzzzico12.github.io/weatherwidget/PRIVACY_POLICY.html)
 
 ## ライセンス
 Copyright © 2026 zzzzico12. All rights reserved.
