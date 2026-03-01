@@ -13,8 +13,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 class WeatherUpdateService : Service() {
@@ -63,7 +63,9 @@ class WeatherUpdateService : Service() {
 
             // 共通リポジトリを使用して天気を取得
             val weatherInfo = repository.fetchWeather(location.latitude, location.longitude)
-            val timeStr = SimpleDateFormat("HH:mm", Locale.JAPAN).format(Date())
+            
+            // API 26+ の java.time を使用
+            val timeStr = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault()))
 
             WeatherWidgetProvider.updateWidget(
                 this,
