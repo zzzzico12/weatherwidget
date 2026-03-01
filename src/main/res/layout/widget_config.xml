@@ -10,7 +10,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="ウィジェット設定"
+        android:text="@string/config_title"
         android:textSize="20sp"
         android:textStyle="bold"
         android:textColor="#212121"
@@ -20,7 +20,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="文字色"
+        android:text="@string/text_color_label"
         android:textSize="14sp"
         android:textColor="#757575"
         android:layout_marginBottom="8dp" />
@@ -37,7 +37,7 @@
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_weight="1"
-            android:text="白 (White)"
+            android:text="@string/btn_white"
             android:textColor="#FFFFFF"
             android:backgroundTint="#424242"
             android:layout_marginEnd="8dp"
@@ -48,7 +48,7 @@
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_weight="1"
-            android:text="黒 (Black)"
+            android:text="@string/btn_black"
             android:textColor="#000000"
             android:backgroundTint="#E0E0E0"
             android:layout_marginStart="8dp"
@@ -60,7 +60,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="選択した色でウィジェット文字が表示されます"
+        android:text="@string/config_preview_hint"
         android:textSize="11sp"
         android:textColor="#9E9E9E"
         android:gravity="center"
@@ -71,7 +71,7 @@
         android:id="@+id/btn_add_widget"
         android:layout_width="match_parent"
         android:layout_height="52dp"
-        android:text="ウィジェットを追加"
+        android:text="@string/btn_add_widget"
         android:textColor="#FFFFFF"
         android:backgroundTint="#1976D2"
         android:textSize="16sp"

@@ -7,4 +7,13 @@
     <string name="loading">Loading…</string>
     <string name="error_location">Location error</string>
     <string name="error_network">Network error</string>
+    <string name="privacy_policy_url">https://example.com/privacy-policy</string>
+
+    <!-- Config Activity -->
+    <string name="config_title">Widget Settings</string>
+    <string name="text_color_label">Text Color</string>
+    <string name="btn_white">White</string>
+    <string name="btn_black">Black</string>
+    <string name="config_preview_hint">Widget text will be displayed in the selected color</string>
+    <string name="btn_add_widget">Add Widget</string>
 </resources>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="1024dp"
+    android:height="500dp"
+    android:viewportWidth="1024"
+    android:viewportHeight="500">
+
+    <!-- 背景のグラデーション -->
+    <path android:pathData="M0,0h1024v500h-1024z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:centerX="512"
+                android:centerY="250"
+                android:gradientRadius="600"
+                android:type="radial">
+                <item android:color="#4A90E2" android:offset="0" />
+                <item android:color="#2171C1" android:offset="1" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- 装飾的な雲の背景 -->
+    <path
+        android:fillColor="#10FFFFFF"
+        android:pathData="M150,400Q250,300 350,400T550,400T750,400" />
+
+    <!-- メインの傘アイコン (中央少し右) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M650,350C650,350 650,220 780,220C910,220 910,350 910,350C910,350 880,330 850,330C820,330 780,350 780,350C780,350 740,330 710,330C680,330 650,350 650,350Z" />
+
+    <!-- 傘の柄 -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="8"
+        android:strokeLineCap="round"
+        android:pathData="M780,250L780,380A8,8 0,0 1,760 380" />
+
+    <!-- 雨粒の装飾 -->
+    <path
+        android:fillColor="#CCFFFFFF"
+        android:pathData="M100,100Q100,110 95,110T90,100T95,90T100,100Z M300,50Q300,60 295,60T290,50T295,40T300,50Z" />
+</vector>

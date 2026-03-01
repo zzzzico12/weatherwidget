@@ -8,4 +8,12 @@
     <string name="error_location">位置情報を取得できませんでした</string>
     <string name="error_network">ネットワークエラー</string>
     <string name="privacy_policy_url">https://example.com/privacy-policy</string>
+
+    <!-- Config Activity -->
+    <string name="config_title">ウィジェット設定</string>
+    <string name="text_color_label">文字色</string>
+    <string name="btn_white">白 (White)</string>
+    <string name="btn_black">黒 (Black)</string>
+    <string name="config_preview_hint">選択した色でウィジェット文字が表示されます</string>
+    <string name="btn_add_widget">ウィジェットを追加</string>
 </resources>

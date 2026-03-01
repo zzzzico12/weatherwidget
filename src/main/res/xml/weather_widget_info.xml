@@ -5,7 +5,7 @@
     android:targetCellWidth="2"
     android:targetCellHeight="1"
     android:updatePeriodMillis="1800000"
-    android:configure="com.example.weatherwidget.WidgetConfigActivity"
+    android:configure="com.zzzzico12.weatherwidget.WidgetConfigActivity"
     android:widgetCategory="home_screen"
     android:resizeMode="horizontal|vertical"
     android:description="@string/widget_description" />

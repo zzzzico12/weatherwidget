@@ -6,10 +6,10 @@ plugins {
 
 android {
     compileSdk 34
-    namespace "com.example.weatherwidget"
+    namespace "com.zzzzico12.weatherwidget"
 
     defaultConfig {
-        applicationId "com.example.weatherwidget"
+        applicationId "com.zzzzico12.weatherwidget"
         minSdk 26
         targetSdk 34
         versionCode 1
