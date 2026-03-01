@@ -1,0 +1,21 @@
+# Built artifacts
+/build/
+.gradle/
+/release/
+
+# Local configuration files
+local.properties
+
+# Android Studio / IntelliJ IDEA files
+.idea/
+*.iml
+*.iws
+.project
+.settings/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log

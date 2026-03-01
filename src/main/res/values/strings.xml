@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WeatherUmbrella (天気と傘)</string>
+    <string name="widget_description">今日の気温と傘の必要性を表示するシンプルなウィジェット</string>
+    <string name="need_umbrella">傘いる</string>
+    <string name="no_umbrella">傘いらない</string>
+    <string name="loading">読込中…</string>
+    <string name="error_location">位置情報を取得できませんでした</string>
+    <string name="error_network">ネットワークエラー</string>
+    <string name="privacy_policy_url">https://example.com/privacy-policy</string>
+</resources>

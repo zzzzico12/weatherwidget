@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">WeatherUmbrella</string>
+    <string name="widget_description">A simple widget showing current temperature and whether you need an umbrella.</string>
+    <string name="need_umbrella">Umbrella needed</string>
+    <string name="no_umbrella">No umbrella</string>
+    <string name="loading">Loading…</string>
+    <string name="error_location">Location error</string>
+    <string name="error_network">Network error</string>
+</resources>
