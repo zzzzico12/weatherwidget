@@ -1,18 +1,24 @@
 package com.zzzzico12.weatherwidget
 
+import android.Manifest
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.Service
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.location.Location
-import android.location.LocationManager
+import android.os.Build
 import android.os.IBinder
-import android.view.View
-import android.widget.RemoteViews
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
+import android.util.Log
+import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import kotlinx.coroutines.*
+import kotlinx.coroutines.tasks.await
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -36,9 +42,36 @@ class WeatherUpdateService : Service() {
             return START_NOT_STICKY
         }
 
-        scope.launch {
-            updateWeather(appWidgetId)
+        // 1. フォアグラウンドサービスとして登録を試みる（Android 14+ の SecurityException 対策）
+        try {
+            startForeground(NOTIFICATION_ID, createNotification())
+            // 2. 即座にUIを「更新中」に変更
+            WeatherWidgetProvider.showLoadingImmediate(this, appWidgetId)
+        } catch (e: Exception) {
+            Log.e("WeatherService", "Could not start foreground service", e)
+            // 権限不足などでフォアグラウンド化できない場合は、エラーを表示して終了する
+            val manager = AppWidgetManager.getInstance(this)
+            val isWhiteText = getSharedPreferences(WeatherWidgetProvider.PREFS_NAME, MODE_PRIVATE)
+                .getBoolean(WeatherWidgetProvider.PREF_TEXT_COLOR_PREFIX + appWidgetId, true)
+            WeatherWidgetProvider.showError(this, manager, appWidgetId, getString(R.string.error_location), isWhiteText)
             stopSelf(startId)
+            return START_NOT_STICKY
+        }
+
+        scope.launch {
+            try {
+                withTimeout(20000) {
+                    updateWeather(appWidgetId)
+                }
+            } catch (e: Exception) {
+                Log.e("WeatherService", "Update failed", e)
+                val manager = AppWidgetManager.getInstance(this@WeatherUpdateService)
+                val prefs = getSharedPreferences(WeatherWidgetProvider.PREFS_NAME, Context.MODE_PRIVATE)
+                val isWhiteText = prefs.getBoolean(WeatherWidgetProvider.PREF_TEXT_COLOR_PREFIX + appWidgetId, true)
+                WeatherWidgetProvider.showError(this@WeatherUpdateService, manager, appWidgetId, getString(R.string.error_network), isWhiteText)
+            } finally {
+                stopSelf(startId)
+            }
         }
 
         return START_NOT_STICKY
@@ -52,79 +85,75 @@ class WeatherUpdateService : Service() {
             true
         )
 
-        showLoading(appWidgetManager, appWidgetId, isWhiteText)
-
-        try {
-            val location = getLastKnownLocation()
-            if (location == null) {
-                showError(appWidgetManager, appWidgetId, getString(R.string.error_location), isWhiteText)
+        val location = getCurrentLocation()
+        val lat: Double
+        val lon: Double
+        
+        if (location != null) {
+            lat = location.latitude
+            lon = location.longitude
+            prefs.edit().putString("last_lat", lat.toString()).putString("last_lon", lon.toString()).apply()
+        } else {
+            val savedLat = prefs.getString("last_lat", null)
+            val savedLon = prefs.getString("last_lon", null)
+            if (savedLat != null && savedLon != null) {
+                lat = savedLat.toDouble()
+                lon = savedLon.toDouble()
+            } else {
+                WeatherWidgetProvider.showError(this, appWidgetManager, appWidgetId, getString(R.string.error_location), isWhiteText)
                 return
             }
+        }
 
-            // 共通リポジトリを使用して天気を取得
-            val weatherInfo = repository.fetchWeather(location.latitude, location.longitude)
-            
-            // API 26+ の java.time を使用
-            val timeStr = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault()))
+        val weatherInfo = repository.fetchWeather(lat, lon)
+        val timeStr = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault()))
 
-            WeatherWidgetProvider.updateWidget(
-                this,
-                appWidgetManager,
-                appWidgetId,
-                weatherInfo.temperature,
-                weatherInfo.needUmbrella,
-                timeStr,
-                isWhiteText
-            )
+        WeatherWidgetProvider.updateWidget(
+            this, appWidgetManager, appWidgetId,
+            weatherInfo.temperature, weatherInfo.needUmbrella, timeStr, isWhiteText
+        )
+    }
 
+    private suspend fun getCurrentLocation(): Location? {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return null
+        }
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        return try {
+            val last = fusedLocationClient.lastLocation.await()
+            if (last != null && (System.currentTimeMillis() - last.time) < 1000 * 60 * 60) {
+                last
+            } else {
+                withTimeoutOrNull(5000) {
+                    fusedLocationClient.getCurrentLocation(Priority.PRIORITY_BALANCED_POWER_ACCURACY, null).await()
+                }
+            }
         } catch (e: Exception) {
-            showError(appWidgetManager, appWidgetId, getString(R.string.error_network), isWhiteText)
+            null
         }
     }
 
-    private fun getLastKnownLocation(): Location? {
-        return try {
-            val locationManager = getSystemService(LOCATION_SERVICE) as LocationManager
-            val providers = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)
-            var bestLocation: Location? = null
-            for (provider in providers) {
-                try {
-                    val loc = locationManager.getLastKnownLocation(provider) ?: continue
-                    if (bestLocation == null || loc.accuracy < bestLocation.accuracy) {
-                        bestLocation = loc
-                    }
-                } catch (_: SecurityException) {}
-            }
-            bestLocation
-        } catch (_: Exception) { null }
-    }
+    private fun createNotification(): Notification {
+        val channelId = "weather_update_channel"
+        val channel = NotificationChannel(channelId, "天気情報の更新", NotificationManager.IMPORTANCE_LOW)
+        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        manager.createNotificationChannel(channel)
 
-    private fun showLoading(manager: AppWidgetManager, widgetId: Int, isWhiteText: Boolean) {
-        val views = RemoteViews(packageName, R.layout.weather_widget)
-        val textColor = if (isWhiteText) 0xFFFFFFFF.toInt() else 0xFF212121.toInt()
-        views.setTextViewText(R.id.tv_temperature, "…")
-        views.setTextColor(R.id.tv_temperature, textColor)
-        views.setTextViewText(R.id.tv_umbrella_icon, "⌛")
-        views.setViewVisibility(R.id.tv_no_umbrella_cross, View.GONE)
-        views.setTextViewText(R.id.tv_umbrella_label, getString(R.string.loading))
-        views.setTextColor(R.id.tv_umbrella_label, textColor)
-        manager.updateAppWidget(widgetId, views)
-    }
-
-    private fun showError(manager: AppWidgetManager, widgetId: Int, msg: String, isWhiteText: Boolean) {
-        val views = RemoteViews(packageName, R.layout.weather_widget)
-        val textColor = if (isWhiteText) 0xFFFFFFFF.toInt() else 0xFF212121.toInt()
-        views.setTextViewText(R.id.tv_temperature, "!")
-        views.setTextColor(R.id.tv_temperature, textColor)
-        views.setTextViewText(R.id.tv_umbrella_icon, "⚠️")
-        views.setViewVisibility(R.id.tv_no_umbrella_cross, View.GONE)
-        views.setTextViewText(R.id.tv_umbrella_label, msg)
-        views.setTextColor(R.id.tv_umbrella_label, textColor)
-        manager.updateAppWidget(widgetId, views)
+        return NotificationCompat.Builder(this, channelId)
+            .setContentTitle("天気を更新しています")
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setSilent(true)
+            .build()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         job.cancel()
+    }
+    
+    companion object {
+        private const val NOTIFICATION_ID = 1
     }
 }
